@@ -1,4 +1,5 @@
 using Expense_Tracker.Data;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
