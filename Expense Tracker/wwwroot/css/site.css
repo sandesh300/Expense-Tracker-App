@@ -9,17 +9,49 @@ html {
 }
 
 html {
-  position: relative;
-  min-height: 100%;
+    position: relative;
+    min-height: 100%;
+    font-family: "Inter";
+}
+
+*:not(.fa-solid):not(.fa):not(.e-icons) {
+    font-family: "Inter"
 }
 
 body {
-  margin-bottom: 60px;
-  background-color : #12161d;
-  color: #fff;
+    margin-bottom: 60px;
+    background-color: #12161d;
+    color: #fff;
+    overflow: hidden;
 }
+
 .e-bigger {
     font-size: x-large;
+}
+
+.main-content {
+    margin-left: 290px;
+    overflow-y: auto;
+    height: 92vh;
+}
+
+
+/*BreadCrumb*/
+.e-breadcrumb a, .e-breadcrumb a:hover {
+    text-decoration: none !important;
+    color: inherit !important;
+}
+
+/*Button*/
+.btn:focus, .btn:active {
+    outline: none !important;
+    box-shadow: none;
+}
+
+/*Hyperlink*/
+.no-a-decoration, .no-a-decoration:hover {
+    text-decoration: none;
+    color: inherit;
 }
 
 /*Grid*/
