@@ -70,3 +70,15 @@ The Expense Tracker App caters to individuals or businesses looking to manage th
 - **Performance Optimization**: Optimize database queries, frontend rendering, and server-side processing to enhance application performance and responsiveness.
 - **Error Handling**: Implement robust error handling mechanisms to provide users with meaningful error messages and ensure smooth application operation.
 - **Documentation**: Provide comprehensive documentation, including installation instructions, usage guidelines, and troubleshooting tips, to assist users in utilizing the application effectively.
+
+## Video
+https://github.com/sandesh300/Expense-Tracker-App/assets/92014891/89735de4-f801-4d0a-9203-dd4d1f315a56
+
+## Images
+![Screenshot (1069)](https://github.com/sandesh300/Expense-Tracker-App/assets/92014891/5d20d458-9808-419f-bf8c-ccccf9b05dfd)
+![Screenshot (1070)](https://github.com/sandesh300/Expense-Tracker-App/assets/92014891/3988c7a0-01c7-482f-b7ec-906e7188edbc)
+![Screenshot (1071)](https://github.com/sandesh300/Expense-Tracker-App/assets/92014891/837aa6a5-eec0-409f-9cc9-3e49150b0847)
+![Screenshot (1072)](https://github.com/sandesh300/Expense-Tracker-App/assets/92014891/a11d86bb-2891-4372-8d96-ad8d00923b5f)
+![Screenshot (1073)](https://github.com/sandesh300/Expense-Tracker-App/assets/92014891/a8f34619-fe8a-4ee5-8189-8219ca86c71f)
+![Screenshot (1074)](https://github.com/sandesh300/Expense-Tracker-App/assets/92014891/8ba82e4a-629e-411d-8630-5a8d44d5e674)
+![Screenshot (1075)](https://github.com/sandesh300/Expense-Tracker-App/assets/92014891/073c9bbc-1066-4baa-a017-61c633a11d25)
