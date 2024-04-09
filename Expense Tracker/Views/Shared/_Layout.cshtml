@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Expense_Tracker</title>
+    <title>Expense Tracker</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
 @*     <link rel="stylesheet" href="https://cdn.syncfusion.com/ej2/25.1.35/material.css" /> *@
     <link href="https://cdn.syncfusion.com/ej2/25.1.35/bootstrap5-dark.css" rel="stylesheet" />
@@ -15,35 +15,59 @@
 
 </head>
 <body class="e-bigger">
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Expense_Tracker</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
+
+    <partial name="_SideBar" />
+
+    <div class="dock-target">
+
+        <nav class="navbar sticky-top">
+            <div class="container-fluid py-2 px-4">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <div>
+                    <i class="fa-solid fa-bell"></i>
+                    <i class="fa-solid fa-message"></i>
+                    <img class="profile-pic" src="~/profile.jpg" />
                 </div>
             </div>
         </nav>
-    </header>
-    <div class="container" mt="5">
-        <div class="row justify-content-center">
-            <div class="col-md-10">
-                <main role="main" class="pb-3">
-                    @RenderBody()
-                </main>
+
+
+        <div class="main-content">
+            <div class="container mt-5">
+                <div class="row justify-content-center">
+                    <div class="@(ViewData["isDashboard"] == null?"col-md-10":"col-md-12")">
+                        <main role="main" class="pb-3">
+                            @if (ViewData["isDashboard"] == null)
+                            {
+                                <div class="row">
+                                    <div class="col-md-7">
+                                        <div class="d-flex flex-column mb-5">
+                                            <div class="d-flex mb-1">
+                                                <div class="flex-grow-1">
+                                                    <h3 class="fw-bold">@ViewData["PageTitle"]</h3>
+                                                </div>
+                                                <div>
+                                                    @if (ViewData["PageActionText"] != null)
+                                                    {
+                                                        <a class="btn btn-success" href="@ViewData["PageActionUrl"]">
+                                                            @ViewData["PageActionText"]
+                                                        </a>
+                                                    }
+                                                </div>
+                                            </div>
+                                            <ejs-breadcrumb id="breadcrumb"
+                                                            separatorTemplate="@Html.Raw("<span class='fa-solid fa-angle-right'></span>")"></ejs-breadcrumb>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                            @RenderBody()
+                        </main>
+                    </div>
+                </div>
             </div>
         </div>
+
     </div>
 
    
