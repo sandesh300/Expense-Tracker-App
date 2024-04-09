@@ -25,11 +25,32 @@ The Expense Tracker App follows a Model-View-Controller (MVC) architecture:
 - **Controller**: Handles user requests, processes input, and interacts with the model and view components to generate appropriate responses.
 
 ## Modules
-1. **Category Management**: Allows users to create, view, update, and delete expense categories to organize their transactions efficiently.
-2. **Transaction Tracking**: Enables users to record their transactions, including date, amount, description, and associated category.
-3. **Dashboard**: Provides users with a visual representation of their spending habits through charts and graphs, aiding in better financial management.
-4. **Navigation Sidebar**: Incorporates a sidebar menu for seamless navigation between different sections of the application.
-5. **Authentication**: Provides secure login and logout functionality to authenticate users and protect sensitive data.
+1. Authentication Module:
+- Responsible for handling user authentication and authorization.
+- Includes features such as user registration, login, logout, and password management.
+- Utilizes ASP.NET Core Identity framework for user management and role-based access control.
+
+2. Expense Tracking Module:
+- Core module for managing expense transactions and categories.
+- Allows users to record, view, edit, and delete expense transactions.
+- Supports categorization of expenses into custom categories for better organization.
+- Provides functionalities for filtering, sorting, and searching expenses.
+
+3. Dashboard Module:
+- Provides a customizable dashboard for users to view key metrics and summaries of their expenses.
+- Includes charts, graphs, and summaries to visualize spending patterns and trends.
+- Allows users to configure dashboard widgets and personalize their dashboard layout.
+
+4. Category Management Module:
+- Handles the management of expense categories.
+- Supports CRUD operations (Create, Read, Update, Delete) for managing categories.
+- Allows users to create, edit, and delete custom categories for organizing expenses.
+
+5. User Profile Module:
+- Manages user profiles and account settings.
+- Allows users to view and update their profile information, such as name, email, and password.
+- Provides options for configuring account preferences and settings.
+
 
 ## Flow of the App
 1. **Authentication**: Users are required to log in to access the application.
