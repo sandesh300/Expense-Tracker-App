@@ -2,14 +2,18 @@
 
 @{
     ViewData["PageTitle"] = Model.TransactionId == 0 ? "Create a new transaction" : "Edit transaction";
+    var username = Context.Request.Query["username"].ToString() ?? "Guest";
 }
 
 <div class="row">
     <div class="col-md-7">
         <div class="widget p-5" style="background-color:#212b36">
-            <form asp-action="AddOrEdit">
-                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <form asp-action="AddOrEdit" method="post">
                 <input type="hidden" name="TransactionId" value="@Model.TransactionId" />
+                <input type="hidden" name="username" value="@username" />  <!-- preserve username -->
+
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
                 <div class="mb-3">
                     <ejs-datepicker id="date" ejs-for="Date"
                                     placeholder="Date" floatLabelType="Always"
@@ -38,15 +42,4 @@
             </form>
         </div>
     </div>
-    <div class="col-md-5">
-        <div class="widget h-100 d-flex justify-content-center align-items-center">
-            <i class="fa-solid fa-money-bill-transfer fa-2xl"></i>
-        </div>
-    </div>
 </div>
-
-@*@section Scripts {
-    @{
-    await Html.RenderPartialAsync("_ValidationScriptsPartial");
-}
-}*@

@@ -1,67 +1,26 @@
 ﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+    Sidebar for Expense Tracker
 *@
+
 @{
-    List<Object> menuItems = new List<Object>();
-
-    menuItems.Add(new
+    var username = ViewContext.HttpContext.Request.Query["username"].ToString();
+    // get username from URL
+    // Define menu items
+    var menuItems = new List<object>
     {
-        text = "General",
-        separator = true,
-    });
-    menuItems.Add(new
-    {
-        text = "Dashboard",
-        url = "/",
-        iconCss = "fa-solid fa-box",
-    });
-    menuItems.Add(new
-    {
-        text = "Categories",
-        url = "/Category",
-        iconCss = "fa-solid fa-folder-closed",
-    });
-    menuItems.Add(new
-    {
-        text = "Transactions",
-        iconCss = "fa-solid fa-arrow-right-arrow-left",
-        url = "/Transaction"
-    });
-
-    menuItems.Add(new
-    {
-        text = "Extras",
-        separator = true,
-    });
-    menuItems.Add(new
-    {
-        text = "Reports",
-        iconCss = "fa-solid fa-chart-simple",
-        // === MODIFIED THIS LINE ===
-        url = "javascript:downloadReportWithUser();"
-    });
-    menuItems.Add(new
-    {
-        text = "Settings",
-        iconCss = "fa-solid fa-gear",
-        url = "#"
-    });
-
-    // === ADDED LOGOUT BUTTON DEFINITION HERE ===
-    menuItems.Add(new
-    {
-        text = "Logout",
-        iconCss = "fa-solid fa-right-from-bracket",
-        url = "/Account/Login" // This links directly to your login page
-    });
-    // ===========================================
+        new { text = "General", separator = true },
+        new { text = "Dashboard", url = $"/Dashboard/Index?username={username}", iconCss = "fa-solid fa-box" },
+        new { text = "Categories", url = $"/Category/Index?username={username}", iconCss = "fa-solid fa-folder-closed" },
+        new { text = "Transactions", url = $"/Transaction/Index?username={username}", iconCss = "fa-solid fa-arrow-right-arrow-left" },
+        new { text = "Extras", separator = true },
+        new { text = "Reports", iconCss = "fa-solid fa-chart-simple", url = "javascript:downloadReportWithUser();" },
+        new { text = "Settings", iconCss = "fa-solid fa-gear", url = "#" },
+        new { text = "Logout", iconCss = "fa-solid fa-right-from-bracket", url = "/Account/Logout" }
+    };
 }
 
-
-<ejs-sidebar id="sidebar" width="290px" enableDock dockSize="100px"
-             target=".dock-target" enableGestures="false">
+<ejs-sidebar id="sidebar" width="290px" enableDock dockSize="100px" target=".dock-target" enableGestures="false">
     <e-content-template>
-
         <div class="logo-wrapper">
             <div class="app-logo">
                 <img src="~/logo.png" />
@@ -78,22 +37,19 @@
             </div>
         </div>
 
-        <ejs-menu id="menu"
-                  items="menuItems"
-                  orientation="Vertical"
-                  hamburgerMode></ejs-menu>
+        <ejs-menu id="menu" items="menuItems" orientation="Vertical" hamburgerMode></ejs-menu>
     </e-content-template>
 </ejs-sidebar>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // This is your existing code for the sidebar toggle functionality
+        // Sidebar toggle
         var dockBar = document.getElementById('sidebar').ej2_instances[0];
         document.getElementById('sidebar-toggler').onclick = function () {
             dockBar.toggle();
         };
 
-        // This is your existing code for displaying the username
+        // Show logged-in username if passed in URL
         const urlParams = new URLSearchParams(window.location.search);
         const username = urlParams.get('username');
         if (username) {
@@ -101,16 +57,14 @@
         }
     });
 
-        // Inside the <script> tag at the bottom of the sidebar file...
-    // Place this function outside the DOMContentLoaded event listener
-
+    // Function for downloading reports
     function downloadReportWithUser() {
-        // Get the username from the URL, just like before
         const urlParams = new URLSearchParams(window.location.search);
-        const username = urlParams.get('username') || 'Guest'; // Default to 'Guest' if not found
-
-        // Build the correct download URL and navigate to it
-        window.location.href = `/Dashboard/DownloadReport?username=${encodeURIComponent(username)}`;
+        const username = urlParams.get('username') || 'Guest';
+        if (username !== 'Guest') {
+            window.location.href = `/Report/Download?username=${encodeURIComponent(username)}`;
+        } else {
+            alert('Please log in to download reports.');
+        }
     }
-
 </script>

@@ -54,7 +54,7 @@
             if (userName) {
                 // 3. Redirect to the dashboard, adding the name to the URL
                 // encodeURIComponent handles spaces or special characters in the name
-                window.location.href = '/?username=' + encodeURIComponent(userName);
+                window.location.href = '/Dashboard/Index?username=' + encodeURIComponent(userName);
             } else {
                 // Optional: Show an alert if the name field is empty
                 alert('Please enter your name.');

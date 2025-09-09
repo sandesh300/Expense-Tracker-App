@@ -10,7 +10,6 @@ using Expense_Tracker.Models;
 
 namespace Expense_Tracker.Controllers
 {
-
     public class TransactionController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -21,16 +20,20 @@ namespace Expense_Tracker.Controllers
         }
 
         // GET: Transaction
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string username)
         {
+            ViewBag.Username = username ?? "Guest"; // pass username to view
+
             var applicationDbContext = _context.Transactions.Include(t => t.Category);
             return View(await applicationDbContext.ToListAsync());
         }
 
         // GET: Transaction/AddOrEdit
-        public IActionResult AddOrEdit(int id = 0)
+        public IActionResult AddOrEdit(int id = 0, string username = "Guest")
         {
             PopulateCategories();
+            ViewBag.Username = username; // pass username to view
+
             if (id == 0)
                 return View(new Transaction());
             else
@@ -38,11 +41,9 @@ namespace Expense_Tracker.Controllers
         }
 
         // POST: Transaction/AddOrEdit
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddOrEdit([Bind("TransactionId,CategoryId,Amount,Note,Date")] Transaction transaction)
+        public async Task<IActionResult> AddOrEdit([Bind("TransactionId,CategoryId,Amount,Note,Date")] Transaction transaction, string username)
         {
             if (ModelState.IsValid)
             {
@@ -50,32 +51,38 @@ namespace Expense_Tracker.Controllers
                     _context.Add(transaction);
                 else
                     _context.Update(transaction);
+
                 await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+
+                // Redirect with username
+                return RedirectToAction(nameof(Index), new { username = username });
             }
+
             PopulateCategories();
+            ViewBag.Username = username; // keep username if validation fails
             return View(transaction);
         }
 
         // POST: Transaction/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed(int id, string username)
         {
             if (_context.Transactions == null)
             {
-                return Problem("Entity set 'ApplicationDbContext.Transactions'  is null.");
+                return Problem("Entity set 'ApplicationDbContext.Transactions' is null.");
             }
+
             var transaction = await _context.Transactions.FindAsync(id);
             if (transaction != null)
             {
                 _context.Transactions.Remove(transaction);
+                await _context.SaveChangesAsync();
             }
 
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            // Redirect with username
+            return RedirectToAction(nameof(Index), new { username = username });
         }
-
 
         [NonAction]
         public void PopulateCategories()
