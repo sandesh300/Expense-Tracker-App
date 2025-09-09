@@ -37,7 +37,8 @@
     {
         text = "Reports",
         iconCss = "fa-solid fa-chart-simple",
-        url = "#"
+        // === MODIFIED THIS LINE ===
+        url = "javascript:downloadReportWithUser();"
     });
     menuItems.Add(new
     {
@@ -99,5 +100,17 @@
             document.getElementById('profileUsername').textContent = username;
         }
     });
+
+        // Inside the <script> tag at the bottom of the sidebar file...
+    // Place this function outside the DOMContentLoaded event listener
+
+    function downloadReportWithUser() {
+        // Get the username from the URL, just like before
+        const urlParams = new URLSearchParams(window.location.search);
+        const username = urlParams.get('username') || 'Guest'; // Default to 'Guest' if not found
+
+        // Build the correct download URL and navigate to it
+        window.location.href = `/Dashboard/DownloadReport?username=${encodeURIComponent(username)}`;
+    }
 
 </script>

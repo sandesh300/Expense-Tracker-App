@@ -1,8 +1,15 @@
-﻿using Expense_Tracker.Models;
-using Expense_Tracker.Data;
+﻿using Expense_Tracker.Data;
+using Expense_Tracker.Models;
+
+using Expense_Tracker.Models;
+using Expense_Tracker_App.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Expense_Tracker.Controllers
 {
@@ -107,6 +114,70 @@ namespace Expense_Tracker.Controllers
 
 
             return View();
+        }
+
+
+        public async Task<IActionResult> DownloadReport(string username)
+        {
+            // 1. GATHER DATA (This logic should be the same as your Dashboard's Index action)
+            DateTime StartDate = DateTime.Today.AddDays(-6);
+            DateTime EndDate = DateTime.Today;
+
+            List<Transaction> SelectedTransactions = await _context.Transactions
+                .Include(x => x.Category)
+                .Where(y => y.Date >= StartDate && y.Date <= EndDate)
+                .ToListAsync();
+
+            // Total Income
+            decimal TotalIncome = SelectedTransactions
+                .Where(i => i.Category.Type == "Income")
+                .Sum(j => j.Amount);
+
+            // Total Expense
+            decimal TotalExpense = SelectedTransactions
+                .Where(i => i.Category.Type == "Expense")
+                .Sum(j => j.Amount);
+
+            // Balance
+            decimal Balance = TotalIncome - TotalExpense;
+
+            // Recent Transactions
+            var recentTransactions = await _context.Transactions
+                .Include(i => i.Category)
+                .OrderByDescending(j => j.Date)
+                .Take(5)
+                .ToListAsync();
+
+            // Doughnut Chart - Expense By Category
+            var doughnutChartData = SelectedTransactions
+                .Where(i => i.Category.Type == "Expense")
+                .GroupBy(j => j.Category.CategoryId)
+                .Select(k => new DoughnutChartData()
+                {
+                    CategoryTitleWithIcon = k.First().Category.Icon + " " + k.First().Category.Title,
+                    Amount = k.Sum(j => j.Amount),
+                    FormattedAmount = k.Sum(j => j.Amount).ToString("C0"),
+                })
+                .OrderByDescending(l => l.Amount)
+                .ToList();
+
+
+            // 2. POPULATE THE REPORT MODEL
+            var reportModel = new PdfReportModel
+            {
+                ReportGeneratedFor = string.IsNullOrEmpty(username) ? "Guest" : username,
+                TotalIncome = TotalIncome.ToString("C0"),
+                TotalExpense = TotalExpense.ToString("C0"),
+                Balance = Balance.ToString("C0"),
+                RecentTransactions = recentTransactions,
+                ExpensesByCategory = doughnutChartData
+            };  
+
+            // 3. GENERATE THE PDF
+            var pdfBytes = PdfReportGenerator.Generate(reportModel);
+
+            // 4. RETURN THE FILE
+            return File(pdfBytes, "application/pdf", "ExpenseReport.pdf");
         }
     }
 
