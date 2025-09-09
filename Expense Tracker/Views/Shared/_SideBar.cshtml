@@ -14,7 +14,6 @@
         new { text = "Transactions", url = $"/Transaction/Index?username={username}", iconCss = "fa-solid fa-arrow-right-arrow-left" },
         new { text = "Extras", separator = true },
         new { text = "Reports", iconCss = "fa-solid fa-chart-simple", url = "javascript:downloadReportWithUser();" },
-        new { text = "Settings", iconCss = "fa-solid fa-gear", url = "#" },
     };
 }
 
@@ -50,7 +49,7 @@
                   hamburgerMode></ejs-menu>
 
         <!-- ADD THIS LOGOUT FORM -->
-        <div class="mt-auto p-3">
+        <div class="mt-auto p-3" style="margin-top:28vh !important;">
             <form asp-controller="Account" asp-action="Logout" method="post">
                 <button type="submit" class="btn btn-danger w-100">
                     <i class="fa-solid fa-right-from-bracket"></i> Logout
