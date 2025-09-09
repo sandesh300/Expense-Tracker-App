@@ -1,0 +1,66 @@
+﻿@{
+    Layout = null;
+    ViewData["Title"] = "Log In";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Expense Tracker</title>
+    <link rel="stylesheet" href="~/css/login-register.css" />
+</head>
+<body>
+    <div class="auth-container">
+        <!-- ... (Image Panel is unchanged) ... -->
+        <div class="auth-image-panel">
+            <h1>Expense Tracker</h1>
+            <p>Take control of your finances. Clarity and peace of mind start here.</p>
+        </div>
+
+        <div class="auth-form-panel">
+            <h2>Welcome Back!</h2>
+            <p class="subtitle">Log in to continue to your dashboard.</p>
+
+            <form onsubmit="return false;"> <!-- Add onsubmit="return false;" to prevent default form submission -->
+                <div class="form-group">
+                    <label for="Name">Your Name</label>
+                    <!-- === ADDED id="userName" TO THE INPUT === -->
+                    <input type="text" id="userName" name="Name" placeholder="e.g., John Doe" required />
+                </div>
+                <div class="form-group">
+                    <label for="Password">Password</label>
+                    <input type="password" id="Password" name="Password" placeholder="••••••••" required />
+                </div>
+
+                <!-- === MODIFIED BUTTON with new onclick function === -->
+                <button type="button" class="btn-submit" onclick="loginAndRedirect()">Log In</button>
+            </form>
+
+            <div class="auth-link">
+                Don't have an account? <a asp-controller="Account" asp-action="Register">Sign Up</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- === ADDED SCRIPT BLOCK AT THE BOTTOM === -->
+    <script>
+        function loginAndRedirect() {
+            // 1. Get the value from the input field
+            const userName = document.getElementById('userName').value;
+
+            // 2. Check if the name is not empty
+            if (userName) {
+                // 3. Redirect to the dashboard, adding the name to the URL
+                // encodeURIComponent handles spaces or special characters in the name
+                window.location.href = '/?username=' + encodeURIComponent(userName);
+            } else {
+                // Optional: Show an alert if the name field is empty
+                alert('Please enter your name.');
+            }
+        }
+    </script>
+
+</body>
+</html>

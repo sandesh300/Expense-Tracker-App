@@ -1,6 +1,8 @@
 ﻿using Expense_Tracker.Models;
 using Microsoft.EntityFrameworkCore;
 
+
+
 namespace Expense_Tracker.Data
 {
     public class ApplicationDbContext : DbContext
@@ -10,6 +12,10 @@ namespace Expense_Tracker.Data
         }
         public DbSet<Transaction> Transactions { get; set; }    
         public DbSet<Category> Categories { get; set; }
+
+        // In Models/ApplicationDbContext.cs
+        public DbSet<FinancialGoal> FinancialGoals { get; set; }
+        public DbSet<GoalContribution> GoalContributions { get; set; }
 
     }
 }

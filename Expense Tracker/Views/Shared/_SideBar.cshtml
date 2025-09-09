@@ -1,4 +1,4 @@
-﻿﻿@*
+﻿@*
     For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 *@
 @{
@@ -38,12 +38,22 @@
         text = "Reports",
         iconCss = "fa-solid fa-chart-simple",
         url = "#"
-    }); menuItems.Add(new
+    });
+    menuItems.Add(new
     {
         text = "Settings",
         iconCss = "fa-solid fa-gear",
         url = "#"
     });
+
+    // === ADDED LOGOUT BUTTON DEFINITION HERE ===
+    menuItems.Add(new
+    {
+        text = "Logout",
+        iconCss = "fa-solid fa-right-from-bracket",
+        url = "/Account/Login" // This links directly to your login page
+    });
+    // ===========================================
 }
 
 
@@ -60,10 +70,10 @@
         </div>
 
         <div class="profile-wrapper">
-            <img class="profile-pic" src="~/profile.jpg" />
+            <img class="profile-pic" src="~/DefaultPhoto.jpeg" />
             <div class="titles d-flex flex-column ps-3">
                 <h6 class="mb-0">Wallet App</h6>
-                <span class="text-muted">Ashton Cox</span>
+                <span class="text-muted" id="profileUsername">Guest</span>
             </div>
         </div>
 
@@ -76,10 +86,18 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        dockBar = document.getElementById('sidebar').ej2_instances[0];
+        // This is your existing code for the sidebar toggle functionality
+        var dockBar = document.getElementById('sidebar').ej2_instances[0];
         document.getElementById('sidebar-toggler').onclick = function () {
             dockBar.toggle();
         };
+
+        // This is your existing code for displaying the username
+        const urlParams = new URLSearchParams(window.location.search);
+        const username = urlParams.get('username');
+        if (username) {
+            document.getElementById('profileUsername').textContent = username;
+        }
     });
 
 </script>
