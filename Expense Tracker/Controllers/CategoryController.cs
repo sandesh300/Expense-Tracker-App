@@ -20,30 +20,29 @@ namespace Expense_Tracker.Controllers
         }
 
         // GET: Category
-        public async Task<IActionResult> Index(string username)
+        public async Task<IActionResult> Index()
         {
-            ViewBag.Username = username ?? "Guest";  // pass username to view
-
             return _context.Categories != null ?
-                View(await _context.Categories.ToListAsync()) :
-                Problem("Entity set 'ApplicationDbContext.Categories' is null.");
+                        View(await _context.Categories.ToListAsync()) :
+                        Problem("Entity set 'ApplicationDbContext.Categories'  is null.");
         }
 
         // GET: Category/AddOrEdit
-        public IActionResult AddOrEdit(int id = 0, string username = "Guest")
+        public IActionResult AddOrEdit(int id = 0)
         {
-            ViewBag.Username = username; // pass username to view
-
             if (id == 0)
                 return View(new Category());
             else
                 return View(_context.Categories.Find(id));
+
         }
 
         // POST: Category/AddOrEdit
+        // To protect from overposting attacks, enable the specific properties you want to bind to.
+        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddOrEdit([Bind("CategoryId,Title,Icon,Type")] Category category, string username)
+        public async Task<IActionResult> AddOrEdit([Bind("CategoryId,Title,Icon,Type")] Category category)
         {
             if (ModelState.IsValid)
             {
@@ -51,36 +50,31 @@ namespace Expense_Tracker.Controllers
                     _context.Add(category);
                 else
                     _context.Update(category);
-
                 await _context.SaveChangesAsync();
-
-                // Redirect with username so URL keeps it
-                return RedirectToAction(nameof(Index), new { username = username });
+                return RedirectToAction(nameof(Index));
             }
-
-            ViewBag.Username = username; // ensure username is available if model state fails
             return View(category);
         }
+
 
         // POST: Category/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id, string username)
+        public async Task<IActionResult> DeleteConfirmed(int id)
         {
             if (_context.Categories == null)
             {
-                return Problem("Entity set 'ApplicationDbContext.Categories' is null.");
+                return Problem("Entity set 'ApplicationDbContext.Categories'  is null.");
             }
-
             var category = await _context.Categories.FindAsync(id);
             if (category != null)
             {
                 _context.Categories.Remove(category);
-                await _context.SaveChangesAsync();
             }
 
-            // Redirect with username
-            return RedirectToAction(nameof(Index), new { username = username });
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
         }
+
     }
 }
