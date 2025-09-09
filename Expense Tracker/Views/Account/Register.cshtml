@@ -1,49 +1,40 @@
-﻿@{
-    // This tells the page to NOT use the main navigation layout
+﻿@model RegisterViewModel
+@{
     Layout = null;
     ViewData["Title"] = "Register";
 }
-
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Expense Tracker</title>
-    <!-- Link to our shared CSS file -->
-    <link rel="stylesheet" href="~/css/login-register.css" />
-</head>
+<!-- ... (head section is the same as Login) ... -->
 <body>
     <div class="auth-container">
-        <!-- Left Image Panel -->
+        <!-- Image Panel -->
         <div class="auth-image-panel">
             <h1>Expense Tracker</h1>
             <p>Take control of your finances. Clarity and peace of mind start here.</p>
         </div>
-
-        <!-- Right Form Panel -->
+        <!-- Form Panel -->
         <div class="auth-form-panel">
             <h2>Create Your Account</h2>
             <p class="subtitle">Get started with tracking your expenses today.</p>
 
-            <!-- In a real project, these asp- tags will point to your Identity logic -->
-            <form asp-controller="Account" asp-action="Register" method="post">
-                <div class="form-group">
-                    <label for="Email">Email Address</label>
-                    <input type="email" id="Email" name="Email" placeholder="you@example.com" required />
-                </div>
-                <div class="form-group">
-                    <label for="Password">Password</label>
-                    <input type="password" id="Password" name="Password" placeholder="Choose a strong password" required />
-                </div>
-                <div class="form-group">
-                    <label for="ConfirmPassword">Confirm Password</label>
-                    <input type="password" id="ConfirmPassword" name="ConfirmPassword" placeholder="Confirm your password" required />
-                </div>
+            <form asp-action="Register" method="post">
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-                <button type="button" class="btn-submit" onclick="window.location.href='/'">Log In</button>
+                <div class="form-group">
+                    <label asp-for="Email"></label>
+                    <input asp-for="Email" class="form-control" placeholder="you@example.com" />
+                </div>
+                <div class="form-group">
+                    <label asp-for="Password"></label>
+                    <input asp-for="Password" class="form-control" placeholder="Choose a strong password" />
+                </div>
+                <div class="form-group">
+                    <label asp-for="ConfirmPassword"></label>
+                    <input asp-for="ConfirmPassword" class="form-control" placeholder="Confirm your password" />
+                </div>
+                <button type="submit" class="btn-submit">Create Account</button>
             </form>
-
             <div class="auth-link">
                 Already have an account? <a asp-controller="Account" asp-action="Login">Log In</a>
             </div>

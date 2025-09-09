@@ -1,8 +1,10 @@
 ﻿using Expense_Tracker.Data;
 using Expense_Tracker.Models;
-
 using Expense_Tracker.Models;
 using Expense_Tracker_App.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity; // <-- Add these using statements
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -13,46 +15,56 @@ using System.Threading.Tasks;
 
 namespace Expense_Tracker.Controllers
 {
+    [Authorize] // <-- CRITICAL: Ensures only logged-in users can see the dashboard.
+
     public class DashboardController : Controller
+
     {
 
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<IdentityUser> _userManager; // <-- ADD THIS
 
-        public DashboardController(ApplicationDbContext context)
+
+        public DashboardController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
         {
             _context = context;
+            _userManager = userManager; // <-- ADD THIS
+
         }
 
-        public async Task<ActionResult> Index()
+        public async Task<IActionResult> Index()
         {
-            //Last 7 Days
+            // --- Get Current User's ID ---
+            var userId = _userManager.GetUserId(User); // <-- GET USER ID FIRST
+
+            //Date Filter
             DateTime StartDate = DateTime.Today.AddDays(-6);
             DateTime EndDate = DateTime.Today;
 
+            // --- Filter all database queries by UserId ---
             List<Transaction> SelectedTransactions = await _context.Transactions
+                .Where(t => t.UserId == userId) // <-- ADD THIS FILTER
                 .Include(x => x.Category)
                 .Where(y => y.Date >= StartDate && y.Date <= EndDate)
                 .ToListAsync();
 
-            //Total Income
-            int TotalIncome = SelectedTransactions
+            // Total Income
+            decimal TotalIncome = SelectedTransactions
                 .Where(i => i.Category.Type == "Income")
                 .Sum(j => j.Amount);
             ViewBag.TotalIncome = TotalIncome.ToString("C0");
 
-            //Total Expense
-            int TotalExpense = SelectedTransactions
+            // Total Expense
+            decimal TotalExpense = SelectedTransactions
                 .Where(i => i.Category.Type == "Expense")
                 .Sum(j => j.Amount);
             ViewBag.TotalExpense = TotalExpense.ToString("C0");
 
-            //Balance
-            int Balance = TotalIncome - TotalExpense;
-            CultureInfo culture = CultureInfo.CreateSpecificCulture("en-US");
-            culture.NumberFormat.CurrencyNegativePattern = 1;
-            ViewBag.Balance = String.Format(culture, "{0:C0}", Balance);
+            // Balance
+            decimal Balance = TotalIncome - TotalExpense;
+            ViewBag.Balance = Balance.ToString("C0");
 
-            //Doughnut Chart - Expense By Category
+            // Doughnut Chart - Expense By Category
             ViewBag.DoughnutChartData = SelectedTransactions
                 .Where(i => i.Category.Type == "Expense")
                 .GroupBy(j => j.Category.CategoryId)
@@ -65,9 +77,12 @@ namespace Expense_Tracker.Controllers
                 .OrderByDescending(l => l.amount)
                 .ToList();
 
-            //Spline Chart - Income vs Expense
 
-            //Income
+            // ==========================================================
+            // === ADD THIS ENTIRE BLOCK FOR THE SPLINE CHART DATA ===
+            // ==========================================================
+            // Spline Chart - Income vs Expense
+            // Income
             List<SplineChartData> IncomeSummary = SelectedTransactions
                 .Where(i => i.Category.Type == "Income")
                 .GroupBy(j => j.Date)
@@ -78,7 +93,7 @@ namespace Expense_Tracker.Controllers
                 })
                 .ToList();
 
-            //Expense
+            // Expense
             List<SplineChartData> ExpenseSummary = SelectedTransactions
                 .Where(i => i.Category.Type == "Expense")
                 .GroupBy(j => j.Date)
@@ -89,7 +104,7 @@ namespace Expense_Tracker.Controllers
                 })
                 .ToList();
 
-            //Combine Income & Expense
+            // Combine Income & Expense
             string[] Last7Days = Enumerable.Range(0, 7)
                 .Select(i => StartDate.AddDays(i).ToString("dd-MMM"))
                 .ToArray();
@@ -99,89 +114,110 @@ namespace Expense_Tracker.Controllers
                                       from income in dayIncomeJoined.DefaultIfEmpty()
                                       join expense in ExpenseSummary on day equals expense.day into expenseJoined
                                       from expense in expenseJoined.DefaultIfEmpty()
-                                      select new
+                                      select new SplineChartData()
                                       {
                                           day = day,
                                           income = income == null ? 0 : income.income,
                                           expense = expense == null ? 0 : expense.expense,
                                       };
-            //Recent Transactions
+            // ==========================================================
+            // === END OF ADDED BLOCK ===
+            // ==========================================================
+
+            // Recent Transactions
             ViewBag.RecentTransactions = await _context.Transactions
+                .Where(t => t.UserId == userId) // <-- ADD THIS FILTER
                 .Include(i => i.Category)
                 .OrderByDescending(j => j.Date)
                 .Take(5)
                 .ToListAsync();
-
 
             return View();
         }
 
+        // Replace the existing DownloadReport method with this one.
 
-        public async Task<IActionResult> DownloadReport(string username)
+        // In Controllers/DashboardController.cs
+
+        [Authorize]
+        public async Task<IActionResult> DownloadReport()
         {
-            // 1. GATHER DATA (This logic should be the same as your Dashboard's Index action)
-            DateTime StartDate = DateTime.Today.AddDays(-6);
-            DateTime EndDate = DateTime.Today;
+            var username = _userManager.GetUserName(User);
+            var userId = _userManager.GetUserId(User);
 
-            List<Transaction> SelectedTransactions = await _context.Transactions
-                .Include(x => x.Category)
-                .Where(y => y.Date >= StartDate && y.Date <= EndDate)
-                .ToListAsync();
+            // ==========================================================
+            // === EFFICIENT DATA GATHERING LOGIC STARTS HERE ===
+            // ==========================================================
 
-            // Total Income
-            decimal TotalIncome = SelectedTransactions
-                .Where(i => i.Category.Type == "Income")
-                .Sum(j => j.Amount);
+            // Build the base query for the current user's transactions.
+            // Notice we do NOT use ToListAsync() here. This is an IQueryable.
+            var userTransactionsQuery = _context.Transactions
+                .Where(t => t.UserId == userId)
+                .Include(t => t.Category);
 
-            // Total Expense
-            decimal TotalExpense = SelectedTransactions
-                .Where(i => i.Category.Type == "Expense")
-                .Sum(j => j.Amount);
-
-            // Balance
-            decimal Balance = TotalIncome - TotalExpense;
-
-            // Recent Transactions
-            var recentTransactions = await _context.Transactions
-                .Include(i => i.Category)
-                .OrderByDescending(j => j.Date)
+            // 1. GET RECENT TRANSACTIONS
+            // The database query only runs here, fetching just 5 records.
+            var recentTransactions = await userTransactionsQuery
+                .OrderByDescending(t => t.Date)
                 .Take(5)
                 .ToListAsync();
 
-            // Doughnut Chart - Expense By Category
-            var doughnutChartData = SelectedTransactions
-                .Where(i => i.Category.Type == "Expense")
-                .GroupBy(j => j.Category.CategoryId)
-                .Select(k => new DoughnutChartData()
+            // 2. GET SUMMARY DATA
+            // The database query only runs here, fetching aggregated results.
+            var summaryData = await userTransactionsQuery
+                .GroupBy(t => 1) // Group by a constant to aggregate all rows
+                .Select(g => new
                 {
-                    CategoryTitleWithIcon = k.First().Category.Icon + " " + k.First().Category.Title,
-                    Amount = k.Sum(j => j.Amount),
-                    FormattedAmount = k.Sum(j => j.Amount).ToString("C0"),
+                    TotalIncome = g.Where(t => t.Category.Type == "Income").Sum(t => (decimal?)t.Amount) ?? 0,
+                    TotalExpense = g.Where(t => t.Category.Type == "Expense").Sum(t => (decimal?)t.Amount) ?? 0,
+                }).FirstOrDefaultAsync();
+
+            decimal totalIncome = summaryData?.TotalIncome ?? 0;
+            decimal totalExpense = summaryData?.TotalExpense ?? 0;
+            decimal balance = totalIncome - totalExpense;
+
+
+            // 3. GET DOUGHNUT CHART DATA
+            // The database query only runs here, fetching grouped category data.
+            var doughnutChartData = await userTransactionsQuery
+                .Where(t => t.Category.Type == "Expense")
+                .GroupBy(t => new { t.CategoryId, t.Category.Icon, t.Category.Title })
+                .Select(g => new DoughnutChartData
+                {
+                    CategoryTitleWithIcon = g.Key.Icon + " " + g.Key.Title,
+                    Amount = g.Sum(t => t.Amount),
+                    FormattedAmount = g.Sum(t => t.Amount).ToString("C0")
                 })
-                .OrderByDescending(l => l.Amount)
-                .ToList();
+                .OrderByDescending(d => d.Amount)
+                .ToListAsync();
+
+            // ==========================================================
+            // === DATA GATHERING LOGIC ENDS HERE ===
+            // ==========================================================
 
 
-            // 2. POPULATE THE REPORT MODEL
+            // 4. POPULATE THE REPORT MODEL
+            CultureInfo culture = CultureInfo.CreateSpecificCulture("en-US");
+            culture.NumberFormat.CurrencyNegativePattern = 1;
+
             var reportModel = new PdfReportModel
             {
-                ReportGeneratedFor = string.IsNullOrEmpty(username) ? "Guest" : username,
-                TotalIncome = TotalIncome.ToString("C0"),
-                TotalExpense = TotalExpense.ToString("C0"),
-                Balance = Balance.ToString("C0"),
+                ReportGeneratedFor = username,
+                TotalIncome = totalIncome.ToString("C0"),
+                TotalExpense = totalExpense.ToString("C0"),
+                Balance = String.Format(culture, "{0:C0}", balance),
                 RecentTransactions = recentTransactions,
                 ExpensesByCategory = doughnutChartData
-            };  
+            };
 
-            // 3. GENERATE THE PDF
+            // 5. GENERATE THE PDF
             var pdfBytes = PdfReportGenerator.Generate(reportModel);
 
-            // 4. RETURN THE FILE
+            // 6. RETURN THE FILE
             return File(pdfBytes, "application/pdf", "ExpenseReport.pdf");
         }
     }
-
-    public class SplineChartData
+        public class SplineChartData
     {
         public string day;
         public int income;

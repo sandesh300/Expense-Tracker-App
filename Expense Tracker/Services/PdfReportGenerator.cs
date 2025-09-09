@@ -1,6 +1,4 @@
 ﻿using System.Globalization;
-// In Services/PdfReportGenerator.cs
-using Expense_Tracker.Models;
 using Expense_Tracker.Models;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
@@ -14,18 +12,16 @@ namespace Expense_Tracker_App.Services
     {
         public static byte[] Generate(PdfReportModel data)
         {
-            // Set up QuestPDF
             QuestPDF.Settings.License = LicenseType.Community;
 
             return Document.Create(container =>
             {
                 container.Page(page =>
                 {
-                    // Page setup
                     page.Size(PageSizes.A4);
                     page.Margin(2, Unit.Centimetre);
-                    page.PageColor(QuestPDF.Helpers.Colors.White);
-                    page.DefaultTextStyle(x => x.FontSize(12).FontFamily(QuestPDF.Helpers.Fonts.Arial));
+                    page.PageColor(Colors.White);
+                    page.DefaultTextStyle(x => x.FontSize(11).FontFamily(Fonts.Arial));
 
                     // Header
                     page.Header().Element(header => ComposeHeader(header, data.ReportGeneratedFor));
@@ -33,13 +29,23 @@ namespace Expense_Tracker_App.Services
                     // Content
                     page.Content().Element(content => ComposeContent(content, data));
 
-                    // Footer
-                    page.Footer().AlignCenter().Text(x =>
+                    // Footer with date + page number
+                    page.Footer().Row(row =>
                     {
-                        x.CurrentPageNumber();
-                        x.Span(" / ");
-                        x.TotalPages();
+                        row.RelativeItem().Text($"Generated on {DateTime.Now:d MMM yyyy}")
+                            .FontSize(9).FontColor(Colors.Grey.Medium);
+
+                        row.RelativeItem().AlignRight().Text($"{DateTime.Now:HH:mm} | Page ")
+                            .FontSize(9).FontColor(Colors.Grey.Medium);
+
+                        row.RelativeItem().AlignRight().Text(text =>
+                        {
+                            text.CurrentPageNumber();
+                            text.Span(" / ");
+                            text.TotalPages();
+                        });
                     });
+
                 });
             }).GeneratePdf();
         }
@@ -50,10 +56,10 @@ namespace Expense_Tracker_App.Services
             {
                 row.RelativeItem().Column(column =>
                 {
-                    column.Item().Text($"Expense Report for {username}")
-                        .SemiBold().FontSize(24).FontColor(QuestPDF.Helpers.Colors.Blue.Medium);
-                    column.Item().Text(DateTime.Now.ToString("d MMMM yyyy"))
-                        .SemiBold().FontSize(12).FontColor(QuestPDF.Helpers.Colors.Grey.Medium);
+                    column.Item().Text($"📊 Expense Report for {username}")
+                        .SemiBold().FontSize(22).FontColor(Colors.Blue.Medium);
+                    column.Item().Text($"Period: {DateTime.Now:MMMM yyyy}")
+                        .FontSize(12).FontColor(Colors.Grey.Medium);
                 });
             });
         }
@@ -62,13 +68,22 @@ namespace Expense_Tracker_App.Services
         {
             container.PaddingVertical(20).Column(column =>
             {
-                // Summary Numbers
-                column.Item().Element(summary => ComposeSummary(summary, data));
-                column.Item().PaddingTop(20).Element(chart => ComposeChart(chart, data));
-                column.Item().PaddingTop(20).Element(table => ComposeTransactionsTable(table, data.RecentTransactions));
+                // Section: Summary
+                column.Item().Text("📌 Summary Overview")
+                    .FontSize(14).SemiBold().FontColor(Colors.Black);
+                column.Item().PaddingBottom(15).Element(summary => ComposeSummary(summary, data));
+
+                // Section: Chart
+                column.Item().Text("📊 Expenses by Category")
+                    .FontSize(14).SemiBold().FontColor(Colors.Black);
+                column.Item().PaddingBottom(15).Element(chart => ComposeChart(chart, data));
+
+                // Section: Recent Transactions
+                column.Item().Text("📝 Recent Transactions")
+                    .FontSize(14).SemiBold().FontColor(Colors.Black);
+                column.Item().Element(table => ComposeTransactionsTable(table, data.RecentTransactions));
             });
         }
-
 
         private static void ComposeSummary(IContainer container, PdfReportModel data)
         {
@@ -76,21 +91,31 @@ namespace Expense_Tracker_App.Services
             {
                 table.ColumnsDefinition(columns =>
                 {
-                    columns.ConstantColumn(150);
+                    columns.ConstantColumn(180);
                     columns.RelativeColumn();
                 });
 
-                table.Cell().Element(CellStyle).Text("Total Income").Bold();
-                table.Cell().Element(CellStyle).Text(FormatValue(data.TotalIncome));
+                // Header styling
+                table.Cell().Element(CellStyleHeader).Text("Metric").Bold();
+                table.Cell().Element(CellStyleHeader).Text("Value").Bold();
 
-                table.Cell().Element(CellStyle).Text("Total Expense").Bold();
-                table.Cell().Element(CellStyle).Text(FormatValue(data.TotalExpense));
+                // Income
+                table.Cell().Element(CellStyleBody).Text("💰 Total Income").Bold();
+                table.Cell().Element(CellStyleBody).Text(FormatValue(data.TotalIncome));
 
-                table.Cell().Element(CellStyle).Text("Balance").Bold();
-                table.Cell().Element(CellStyle).Text(FormatValue(data.Balance));
+                // Expense
+                table.Cell().Element(CellStyleBody).Text("💸 Total Expense").Bold();
+                table.Cell().Element(CellStyleBody).Text(FormatValue(data.TotalExpense));
 
-                static IContainer CellStyle(IContainer c) =>
-                    c.Border(1).BorderColor(QuestPDF.Helpers.Colors.Grey.Lighten2).Padding(5);
+                // Balance
+                table.Cell().Element(CellStyleBody).Text("📉 Balance").Bold();
+                table.Cell().Element(CellStyleBody).Text(FormatValue(data.Balance));
+
+                static IContainer CellStyleHeader(IContainer c) =>
+                    c.Background(Colors.Grey.Lighten3).Padding(5).BorderBottom(1).BorderColor(Colors.Grey.Medium);
+
+                static IContainer CellStyleBody(IContainer c) =>
+                    c.Padding(5).BorderBottom(1).BorderColor(Colors.Grey.Lighten2);
             });
         }
 
@@ -101,17 +126,18 @@ namespace Expense_Tracker_App.Services
             return value?.ToString() ?? "0";
         }
 
-
         private static void ComposeChart(IContainer container, PdfReportModel data)
         {
-            // Generate the chart image using ScottPlot
             var plot = new Plot(600, 400);
             double[] values = data.ExpensesByCategory.Select(x => (double)x.Amount).ToArray();
-            string[] labels = data.ExpensesByCategory.Select(x => x.CategoryTitleWithIcon.Split(' ')[0]).ToArray();
+            string[] labels = data.ExpensesByCategory.Select(x => x.CategoryTitleWithIcon).ToArray();
 
             if (values.Any())
             {
-                plot.AddPie(values);
+                var pie = plot.AddPie(values);
+                pie.SliceLabels = labels; // ✅ Show category labels
+                pie.ShowPercentages = true; // ✅ Show %
+                pie.DonutSize = 0.5;        // ✅ Make it donut chart for clarity
                 plot.Legend(true, Alignment.MiddleRight);
             }
             else
@@ -119,12 +145,9 @@ namespace Expense_Tracker_App.Services
                 plot.AddAnnotation("No expense data available", 10, 10);
             }
 
-            plot.Title("Expenses by Category");
+            plot.Title("Expenses by Category", size: 16);
 
-            // Convert the plot to a byte array (image)
             byte[] chartImageBytes = plot.GetImageBytes();
-
-            // Place the image in the PDF
             container.AlignCenter().Image(chartImageBytes, ImageScaling.FitArea);
         }
 
@@ -139,24 +162,26 @@ namespace Expense_Tracker_App.Services
                     columns.RelativeColumn(2);
                 });
 
+                // Header row
                 table.Header(header =>
                 {
-                    header.Cell().Element(CellStyle).Text("Category").Bold();
-                    header.Cell().Element(CellStyle).Text("Date").Bold();
-                    header.Cell().Element(CellStyle).AlignRight().Text("Amount").Bold();
+                    header.Cell().Element(CellHeader).Text("Category").Bold();
+                    header.Cell().Element(CellHeader).Text("Date").Bold();
+                    header.Cell().Element(CellHeader).AlignRight().Text("Amount").Bold();
 
-                    static IContainer CellStyle(IContainer c) =>
-                        c.Padding(5).Background(Colors.Grey.Lighten3); // ✅ Background applied correctly
+                    static IContainer CellHeader(IContainer c) =>
+                        c.Padding(5).Background(Colors.Grey.Lighten3);
                 });
 
-
+                // Body rows
                 foreach (var transaction in transactions)
                 {
-                    table.Cell().Element(CellStyle).Text(transaction.Category.Title);
-                    table.Cell().Element(CellStyle).Text(transaction.Date.ToString("d MMM yyyy"));
-                    table.Cell().Element(CellStyle).AlignRight().Text(transaction.FormattedAmount);
+                    table.Cell().Element(CellBody).Text(transaction.Category.Title);
+                    table.Cell().Element(CellBody).Text(transaction.Date.ToString("d MMM yyyy"));
+                    table.Cell().Element(CellBody).AlignRight().Text(transaction.FormattedAmount);
 
-                    static IContainer CellStyle(IContainer c) => c.BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5);
+                    static IContainer CellBody(IContainer c) =>
+                        c.Padding(5).BorderBottom(1).BorderColor(Colors.Grey.Lighten2);
                 }
             });
         }

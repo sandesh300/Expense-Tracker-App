@@ -7,10 +7,12 @@ namespace Expense_Tracker.Models
         public string TotalIncome { get; set; }
         public string TotalExpense { get; set; }
         public string Balance { get; set; }
-        public List<Transaction> RecentTransactions { get; set; }
-        public List<DoughnutChartData> ExpensesByCategory { get; set; }
-    }
 
+        // --- CHANGE THIS ---
+        // Initialize the lists to guarantee they are never null.
+        public List<Transaction> RecentTransactions { get; set; } = new List<Transaction>();
+        public List<DoughnutChartData> ExpensesByCategory { get; set; } = new List<DoughnutChartData>();
+    }
     // Helper class to hold chart data, you might already have this from your dashboard
     public class DoughnutChartData
     {

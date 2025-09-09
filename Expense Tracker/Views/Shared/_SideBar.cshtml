@@ -15,7 +15,6 @@
         new { text = "Extras", separator = true },
         new { text = "Reports", iconCss = "fa-solid fa-chart-simple", url = "javascript:downloadReportWithUser();" },
         new { text = "Settings", iconCss = "fa-solid fa-gear", url = "#" },
-        new { text = "Logout", iconCss = "fa-solid fa-right-from-bracket", url = "/Account/Logout" }
     };
 }
 
@@ -33,11 +32,32 @@
             <img class="profile-pic" src="~/DefaultPhoto.jpeg" />
             <div class="titles d-flex flex-column ps-3">
                 <h6 class="mb-0">Wallet App</h6>
-                <span class="text-muted" id="profileUsername">Guest</span>
+                @* <span class="text-muted" id="profileUsername">Guest</span> *@
+                @if (User.Identity != null && User.Identity.IsAuthenticated)
+                {
+                    <span class="text-muted">@User.Identity.Name</span>
+                }
+                else
+                {
+                    <span class="text-muted">Guest</span>
+                }
             </div>
         </div>
 
-        <ejs-menu id="menu" items="menuItems" orientation="Vertical" hamburgerMode></ejs-menu>
+        <ejs-menu id="menu"
+                  items="menuItems"
+                  orientation="Vertical"
+                  hamburgerMode></ejs-menu>
+
+        <!-- ADD THIS LOGOUT FORM -->
+        <div class="mt-auto p-3">
+            <form asp-controller="Account" asp-action="Logout" method="post">
+                <button type="submit" class="btn btn-danger w-100">
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout
+                </button>
+            </form>
+        </div>
+
     </e-content-template>
 </ejs-sidebar>
 
@@ -49,22 +69,12 @@
             dockBar.toggle();
         };
 
-        // Show logged-in username if passed in URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const username = urlParams.get('username');
-        if (username) {
-            document.getElementById('profileUsername').textContent = username;
-        }
     });
 
     // Function for downloading reports
     function downloadReportWithUser() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const username = urlParams.get('username') || 'Guest';
-        if (username !== 'Guest') {
-            window.location.href = `/Report/Download?username=${encodeURIComponent(username)}`;
-        } else {
-            alert('Please log in to download reports.');
-        }
+        // Simply navigate to the secure download endpoint.
+        // The browser will automatically send the authentication cookie.
+        window.location.href = '/Dashboard/DownloadReport';
     }
 </script>

@@ -1,4 +1,5 @@
 using Expense_Tracker.Data;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -9,7 +10,8 @@ builder.Services.AddControllersWithViews();
 //dependency injection
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
+builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+        .AddEntityFrameworkStores<ApplicationDbContext>();
 //Register Syncfusion license
 Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("Mgo+DSMBMAY9C3t2UFhhQlJBfVpdVHxLflFyVWFTe156dVZWESFaRnZdRl1nSXdTdEFlWXZWeXJc\r\n");
 
@@ -28,6 +30,8 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+
+app.UseAuthentication();
 
 app.UseAuthorization();
 

@@ -1,8 +1,8 @@
-﻿@{
+﻿@model LoginViewModel
+@{
     Layout = null;
     ViewData["Title"] = "Log In";
 }
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,29 +13,29 @@
 </head>
 <body>
     <div class="auth-container">
-        <!-- ... (Image Panel is unchanged) ... -->
+        <!-- Image Panel -->
         <div class="auth-image-panel">
             <h1>Expense Tracker</h1>
             <p>Take control of your finances. Clarity and peace of mind start here.</p>
         </div>
-
+        <!-- Form Panel -->
         <div class="auth-form-panel">
             <h2>Welcome Back!</h2>
             <p class="subtitle">Log in to continue to your dashboard.</p>
 
-            <form onsubmit="return false;"> <!-- Add onsubmit="return false;" to prevent default form submission -->
-                <div class="form-group">
-                    <label for="Name">Your Name</label>
-                    <!-- === ADDED id="userName" TO THE INPUT === -->
-                    <input type="text" id="userName" name="Name" placeholder="e.g., John Doe" required />
-                </div>
-                <div class="form-group">
-                    <label for="Password">Password</label>
-                    <input type="password" id="Password" name="Password" placeholder="••••••••" required />
-                </div>
+            <form asp-action="Login" method="post">
+                <!-- This will display any login errors -->
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
-                <!-- === MODIFIED BUTTON with new onclick function === -->
-                <button type="button" class="btn-submit" onclick="loginAndRedirect()">Log In</button>
+                <div class="form-group">
+                    <label asp-for="Email"></label>
+                    <input asp-for="Email" class="form-control" placeholder="you@example.com" />
+                </div>
+                <div class="form-group">
+                    <label asp-for="Password"></label>
+                    <input asp-for="Password" class="form-control" placeholder="••••••••" />
+                </div>
+                <button type="submit" class="btn-submit">Log In</button>
             </form>
 
             <div class="auth-link">
@@ -43,24 +43,5 @@
             </div>
         </div>
     </div>
-
-    <!-- === ADDED SCRIPT BLOCK AT THE BOTTOM === -->
-    <script>
-        function loginAndRedirect() {
-            // 1. Get the value from the input field
-            const userName = document.getElementById('userName').value;
-
-            // 2. Check if the name is not empty
-            if (userName) {
-                // 3. Redirect to the dashboard, adding the name to the URL
-                // encodeURIComponent handles spaces or special characters in the name
-                window.location.href = '/Dashboard/Index?username=' + encodeURIComponent(userName);
-            } else {
-                // Optional: Show an alert if the name field is empty
-                alert('Please enter your name.');
-            }
-        }
-    </script>
-
 </body>
 </html>

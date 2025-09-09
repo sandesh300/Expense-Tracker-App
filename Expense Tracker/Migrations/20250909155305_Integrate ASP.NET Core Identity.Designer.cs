@@ -4,6 +4,7 @@ using Expense_Tracker.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Expense_Tracker.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250909155305_Integrate ASP.NET Core Identity")]
+    partial class IntegrateASPNETCoreIdentity
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -42,12 +44,7 @@ namespace Expense_Tracker.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(10)");
 
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
-
                     b.HasKey("CategoryId");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("Categories");
                 });
@@ -128,14 +125,9 @@ namespace Expense_Tracker.Migrations
                     b.Property<string>("Note")
                         .HasColumnType("nvarchar(75)");
 
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
-
                     b.HasKey("TransactionId");
 
                     b.HasIndex("CategoryId");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("Transactions");
                 });
@@ -338,15 +330,6 @@ namespace Expense_Tracker.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Expense_Tracker.Models.Category", b =>
-                {
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Expense_Tracker.Models.GoalContribution", b =>
                 {
                     b.HasOne("Expense_Tracker.Models.FinancialGoal", "FinancialGoal")
@@ -374,13 +357,7 @@ namespace Expense_Tracker.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId");
-
                     b.Navigation("Category");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
