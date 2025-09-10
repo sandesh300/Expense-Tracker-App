@@ -10,14 +10,14 @@ builder.Services.AddControllersWithViews();
 var sendGridSettings = new SendGridSettings();
 builder.Configuration.GetSection("SendGrid").Bind(sendGridSettings);
 
-if (string.IsNullOrEmpty(sendGridSettings.ApiKey))
-{
-    // This will cause the application to fail to start if the API key is not found,
-    // which is exactly what we want. It immediately tells you the configuration is wrong.
-    throw new InvalidOperationException("SendGrid API Key is not configured in User Secrets.");
-}
+//if (string.IsNullOrEmpty(sendGridSettings.ApiKey))
+//{
+//    // This will cause the application to fail to start if the API key is not found,
+//    // which is exactly what we want. It immediately tells you the configuration is wrong.
+//    throw new InvalidOperationException("SendGrid API Key is not configured in User Secrets.");
+//}
 builder.Services.AddSingleton(sendGridSettings); // Add as a singleton service
-builder.Services.AddTransient<IEmailService, SendGridEmailService>();
+builder.Services.AddTransient<IEmailService, SmtpEmailService>();
 
 
 //dependency injection
