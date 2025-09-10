@@ -2,9 +2,15 @@
     Sidebar for Expense Tracker
 *@
 
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+
 @{
     var username = ViewContext.HttpContext.Request.Query["username"].ToString();
-    // get username from URL
+    // Get the current user's first name
+    var currentUser = await UserManager.GetUserAsync(User);
+    var userFirstName = currentUser?.FirstName ?? "Guest";
+
     // Define menu items
     var menuItems = new List<object>
     {
@@ -15,12 +21,6 @@
         new { text = "Extras", separator = true },
         new { text = "Reports", iconCss = "fa-solid fa-chart-simple", url = "javascript:confirmAndSendReportEmail();" },
     };
-    // menuItems.Add(new
-    // {
-    //     text = "Reports",
-    //     iconCss = "fa-solid fa-chart-simple",
-    //     url = "javascript:confirmAndSendReportEmail();" <-- CHANGED
-    // });
 }
 
 <ejs-sidebar id="sidebar" width="290px" enableDock dockSize="100px" target=".dock-target" enableGestures="false">
@@ -37,10 +37,9 @@
             <img class="profile-pic" src="~/DefaultPhoto.jpeg" />
             <div class="titles d-flex flex-column ps-3">
                 <h6 class="mb-0">Wallet App</h6>
-                @* <span class="text-muted" id="profileUsername">Guest</span> *@
                 @if (User.Identity != null && User.Identity.IsAuthenticated)
                 {
-                    <span class="text-muted" id="UserNameSideBar">@User.Identity.Name</span>
+                    <span class="text-muted" id="UserNameSideBar">@userFirstName</span>
                 }
                 else
                 {
@@ -73,30 +72,22 @@
         document.getElementById('sidebar-toggler').onclick = function () {
             dockBar.toggle();
         };
-
     });
-
-    // Function for downloading reports
-    // function downloadReportWithUser() {
-    //     Simply navigate to the secure download endpoint.
-    //     The browser will automatically send the authentication cookie.
-    //     window.location.href = '/Dashboard/DownloadReport';
-    // }
 
     function testing(){
         alert("Called test function");
     }
 
     function confirmAndSendReportEmail() {
-        // Get the current user's email from the sidebar text for the confirmation message
-        const userEmail = document.getElementById('UserNameSideBar').textContent;
+        // Get the current user's first name from the sidebar text for the confirmation message
+        const userFirstName = document.getElementById('UserNameSideBar').textContent;
 
         // Show a confirmation dialog
-        if (confirm(`Are you sure you want to send the report to ${userEmail}?`)) {
+        if (confirm(`Are you sure you want to send the report to ${userFirstName}?`)) {
             // User clicked "OK"
             sendReportRequest();
         }
-    }   
+    }
 
     function sendReportRequest() {
         // Get the anti-forgery token from the hidden input we added to the layout

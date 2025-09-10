@@ -23,11 +23,11 @@ namespace Expense_Tracker.Controllers
     {
 
         private readonly ApplicationDbContext _context;
-        private readonly UserManager<IdentityUser> _userManager; // <-- ADD THIS
+        private readonly UserManager<ApplicationUser> _userManager; // <-- CHANGED: Use ApplicationUser instead of IdentityUser
         private readonly IEmailService _emailService;
 
 
-        public DashboardController(ApplicationDbContext context, UserManager<IdentityUser> userManager, IEmailService emailService)
+        public DashboardController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IEmailService emailService)
         {
             _context = context;
             _userManager = userManager; // <-- ADD THIS

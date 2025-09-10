@@ -55,8 +55,21 @@
                                                     }
                                                 </div>
                                             </div>
-                                            <ejs-breadcrumb id="breadcrumb"
-                                                            separatorTemplate="@Html.Raw("<span class='fa-solid fa-angle-right'></span>")"></ejs-breadcrumb>
+                                            <ejs-breadcrumb id="breadcrumb">
+                                                <e-breadcrumb-items>
+                                                    <e-breadcrumb-item text="Dashboard" url="/Dashboard/Index"></e-breadcrumb-item>
+                                                    @* Example: If you are on Categories page *@
+                                                    @if (ViewData["PageTitle"]?.ToString() == "Categories")
+                                                    {
+                                                        <e-breadcrumb-item text="Categories" url="/Category/Index"></e-breadcrumb-item>
+                                                    }
+                                                    @if (ViewData["PageTitle"]?.ToString() == "Transactions")
+                                                    {
+                                                        <e-breadcrumb-item text="Transactions" url="/Transaction/Index"></e-breadcrumb-item>
+                                                    }
+                                                </e-breadcrumb-items>
+                                            </ejs-breadcrumb>
+
                                         </div>
                                     </div>
                                 </div>

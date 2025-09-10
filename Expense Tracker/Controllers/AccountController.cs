@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Expense_Tracker.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
@@ -6,11 +7,11 @@ namespace Expense_Tracker_App.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly SignInManager<ApplicationUser> _signInManager;
 
-        // Inject the Identity services we need
-        public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager)
+        // Inject the Identity services we need — types must match the generic type (ApplicationUser)
+        public AccountController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
         {
             _userManager = userManager;
             _signInManager = signInManager;
@@ -25,28 +26,26 @@ namespace Expense_Tracker_App.Controllers
 
         // POST: /Account/Login
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginViewModel model)
         {
-            if (ModelState.IsValid)
-            {
-                // Use the SignInManager to attempt to sign the user in with their password
-                var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, isPersistent: false, lockoutOnFailure: false);
+            if (!ModelState.IsValid)
+                return View(model);
 
-                if (result.Succeeded)
-                {
-                    // Success! Redirect to the Dashboard.
-                    // We pass the username in the route to keep our personalization feature working.
-                    return RedirectToAction("Index", "Dashboard", new { username = model.Email });
-                }
-                else
-                {
-                    // If login fails, add an error message to display on the form
-                    ModelState.AddModelError(string.Empty, "Invalid login attempt.");
-                }
+            var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, isPersistent: false, lockoutOnFailure: false);
+
+            if (result.Succeeded)
+            {
+                // Find the user so we can use FirstName (if available) for personalization
+                var user = await _userManager.FindByEmailAsync(model.Email);
+                var displayName = user?.FirstName ?? user?.Email ?? model.Email;
+
+                return RedirectToAction("Index", "Dashboard", new { username = displayName });
             }
+
+            ModelState.AddModelError(string.Empty, "Invalid login attempt.");
             return View(model);
         }
-
 
         // GET: /Account/Register
         [HttpGet]
@@ -57,35 +56,37 @@ namespace Expense_Tracker_App.Controllers
 
         // POST: /Account/Register
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var user = new ApplicationUser
             {
-                // Create a new IdentityUser object with the email as the username
-                var user = new IdentityUser { UserName = model.Email, Email = model.Email };
+                UserName = model.Email,
+                Email = model.Email,
+                FirstName = model.FirstName
+            };
 
-                // Use the UserManager to create the new user with the given password
-                var result = await _userManager.CreateAsync(user, model.Password);
+            var result = await _userManager.CreateAsync(user, model.Password);
 
-                if (result.Succeeded)
-                {
-                    // If creation is successful, sign the user in immediately
-                    await _signInManager.SignInAsync(user, isPersistent: false);
-                    // Redirect to the Dashboard
-                    return RedirectToAction("Index", "Dashboard", new { username = user.Email });
-                }
-
-                // If creation fails, add the errors to the model state to be displayed on the form
-                foreach (var error in result.Errors)
-                {
-                    ModelState.AddModelError(string.Empty, error.Description);
-                }
+            if (result.Succeeded)
+            {
+                await _signInManager.SignInAsync(user, isPersistent: false);
+                var displayName = user.FirstName ?? user.Email;
+                return RedirectToAction("Index", "Dashboard", new { username = displayName });
             }
+
+            foreach (var error in result.Errors)
+                ModelState.AddModelError(string.Empty, error.Description);
+
             return View(model);
         }
 
         // POST: /Account/Logout
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();
