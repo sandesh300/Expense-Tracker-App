@@ -13,8 +13,14 @@
         new { text = "Categories", url = $"/Category/Index?username={username}", iconCss = "fa-solid fa-folder-closed" },
         new { text = "Transactions", url = $"/Transaction/Index?username={username}", iconCss = "fa-solid fa-arrow-right-arrow-left" },
         new { text = "Extras", separator = true },
-        new { text = "Reports", iconCss = "fa-solid fa-chart-simple", url = "javascript:downloadReportWithUser();" },
+        new { text = "Reports", iconCss = "fa-solid fa-chart-simple", url = "javascript:confirmAndSendReportEmail();" },
     };
+    // menuItems.Add(new
+    // {
+    //     text = "Reports",
+    //     iconCss = "fa-solid fa-chart-simple",
+    //     url = "javascript:confirmAndSendReportEmail();" <-- CHANGED
+    // });
 }
 
 <ejs-sidebar id="sidebar" width="290px" enableDock dockSize="100px" target=".dock-target" enableGestures="false">
@@ -34,7 +40,7 @@
                 @* <span class="text-muted" id="profileUsername">Guest</span> *@
                 @if (User.Identity != null && User.Identity.IsAuthenticated)
                 {
-                    <span class="text-muted">@User.Identity.Name</span>
+                    <span class="text-muted" id="UserNameSideBar">@User.Identity.Name</span>
                 }
                 else
                 {
@@ -71,9 +77,49 @@
     });
 
     // Function for downloading reports
-    function downloadReportWithUser() {
-        // Simply navigate to the secure download endpoint.
-        // The browser will automatically send the authentication cookie.
-        window.location.href = '/Dashboard/DownloadReport';
+    // function downloadReportWithUser() {
+    //     Simply navigate to the secure download endpoint.
+    //     The browser will automatically send the authentication cookie.
+    //     window.location.href = '/Dashboard/DownloadReport';
+    // }
+
+    function testing(){
+        alert("Called test function");
+    }
+
+    function confirmAndSendReportEmail() {
+        // Get the current user's email from the sidebar text for the confirmation message
+        const userEmail = document.getElementById('UserNameSideBar').textContent;
+
+        // Show a confirmation dialog
+        if (confirm(`Are you sure you want to send the report to ${userEmail}?`)) {
+            // User clicked "OK"
+            sendReportRequest();
+        }
+    }   
+
+    function sendReportRequest() {
+        // Get the anti-forgery token from the hidden input we added to the layout
+        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+        // Show some feedback to the user
+        alert("Sending report... This may take a moment.");
+
+        // Use the Fetch API to make a secure POST request to our controller action
+        fetch('/Dashboard/SendReportEmail', {
+            method: 'POST',
+            headers: {
+                'RequestVerificationToken': token // Send the token in the headers
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Show the result from the server in an alert
+            alert(data.message);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An unexpected error occurred. Please try again.');
+        });
     }
 </script>

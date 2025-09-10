@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Expense_Tracker.Controllers
@@ -23,12 +24,14 @@ namespace Expense_Tracker.Controllers
 
         private readonly ApplicationDbContext _context;
         private readonly UserManager<IdentityUser> _userManager; // <-- ADD THIS
+        private readonly IEmailService _emailService;
 
 
-        public DashboardController(ApplicationDbContext context, UserManager<IdentityUser> userManager)
+        public DashboardController(ApplicationDbContext context, UserManager<IdentityUser> userManager, IEmailService emailService)
         {
             _context = context;
             _userManager = userManager; // <-- ADD THIS
+            _emailService = emailService; // <-- Store the service
 
         }
 
@@ -216,8 +219,113 @@ namespace Expense_Tracker.Controllers
             // 6. RETURN THE FILE
             return File(pdfBytes, "application/pdf", "ExpenseReport.pdf");
         }
+
+
+        // ADD THIS NEW ACTION
+        [HttpPost]
+        [ValidateAntiForgeryToken] // Protects against CSRF attacks
+        public async Task<IActionResult> SendReportEmail()
+        {
+            try
+            {
+                var user = await _userManager.GetUserAsync(User);
+                if (user == null || string.IsNullOrEmpty(user.Email))
+                {
+                    return Json(new { success = false, message = "User email not found." });
+                }
+
+                // --- Step 1: Generate the PDF (reuse existing logic) ---
+                // (This is the same data-gathering and PDF generation logic from your DownloadReport action)
+                var reportModel = await GenerateReportModelForCurrentUser(); // Refactored logic
+                var pdfBytes = PdfReportGenerator.Generate(reportModel);
+
+                // --- Step 2: Send the Email ---
+                var subject = "Your Expense Tracker Report";
+                var htmlContent = $"<p>Hello {user.UserName},</p><p>Please find your expense report attached.</p>";
+                var pdfFileName = $"ExpenseReport_{DateTime.Now:yyyy-MM-dd}.pdf";
+
+                await _emailService.SendReportEmailAsync(user.Email, subject, htmlContent, pdfBytes, pdfFileName);
+
+                return Json(new { success = true, message = $"Report successfully sent to {user.Email} !" });
+            }
+            catch (Exception ex)
+            {
+                // Log the exception ex
+                return Json(new { success = false, message = "An error occurred while sending the email." });
+            }
+        }
+        private async Task<PdfReportModel> GenerateReportModelForCurrentUser()
+        {
+            var username = _userManager.GetUserName(User);
+            var userId = _userManager.GetUserId(User);
+
+            // ==========================================================
+            // === EFFICIENT DATA GATHERING LOGIC STARTS HERE ===
+            // ==========================================================
+
+            // Build the base query for the current user's transactions.
+            // Notice we do NOT use ToListAsync() here. This is an IQueryable.
+            var userTransactionsQuery = _context.Transactions
+                .Where(t => t.UserId == userId)
+                .Include(t => t.Category);
+
+            // 1. GET RECENT TRANSACTIONS
+            // The database query only runs here, fetching just 5 records.
+            var recentTransactions = await userTransactionsQuery
+                .OrderByDescending(t => t.Date)
+                .Take(5)
+                .ToListAsync();
+
+            // 2. GET SUMMARY DATA
+            // The database query only runs here, fetching aggregated results.
+            var summaryData = await userTransactionsQuery
+                .GroupBy(t => 1) // Group by a constant to aggregate all rows
+                .Select(g => new
+                {
+                    TotalIncome = g.Where(t => t.Category.Type == "Income").Sum(t => (decimal?)t.Amount) ?? 0,
+                    TotalExpense = g.Where(t => t.Category.Type == "Expense").Sum(t => (decimal?)t.Amount) ?? 0,
+                }).FirstOrDefaultAsync();
+
+            decimal totalIncome = summaryData?.TotalIncome ?? 0;
+            decimal totalExpense = summaryData?.TotalExpense ?? 0;
+            decimal balance = totalIncome - totalExpense;
+
+
+            // 3. GET DOUGHNUT CHART DATA
+            // The database query only runs here, fetching grouped category data.
+            var doughnutChartData = await userTransactionsQuery
+                .Where(t => t.Category.Type == "Expense")
+                .GroupBy(t => new { t.CategoryId, t.Category.Icon, t.Category.Title })
+                .Select(g => new DoughnutChartData
+                {
+                    CategoryTitleWithIcon = g.Key.Icon + " " + g.Key.Title,
+                    Amount = g.Sum(t => t.Amount),
+                    FormattedAmount = g.Sum(t => t.Amount).ToString("C0")
+                })
+                .OrderByDescending(d => d.Amount)
+                .ToListAsync();
+
+            // ==========================================================
+            // === DATA GATHERING LOGIC ENDS HERE ===
+            // ==========================================================
+
+
+            // 4. POPULATE THE REPORT MODEL
+            CultureInfo culture = CultureInfo.CreateSpecificCulture("en-US");
+            culture.NumberFormat.CurrencyNegativePattern = 1;
+
+            return new PdfReportModel
+            {
+                ReportGeneratedFor = username,
+                TotalIncome = totalIncome.ToString("C0"),
+                TotalExpense = totalExpense.ToString("C0"),
+                Balance = String.Format(culture, "{0:C0}", balance),
+                RecentTransactions = recentTransactions,
+                ExpensesByCategory = doughnutChartData
+            };
+        }
     }
-        public class SplineChartData
+    public class SplineChartData
     {
         public string day;
         public int income;

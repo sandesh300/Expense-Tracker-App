@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>Expense_Tracker</RootNamespace>
+    <UserSecretsId>ca897f2b-a131-4fe3-93a0-de74bee69c88</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,6 +20,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0.18" />
     <PackageReference Include="QuestPDF" Version="2025.7.1" />
     <PackageReference Include="ScottPlot" Version="4.1.67" />
+    <PackageReference Include="SendGrid" Version="9.29.3" />
     <PackageReference Include="Syncfusion.EJ2.AspNet.Core" Version="25.1.38" />
   </ItemGroup>
 
