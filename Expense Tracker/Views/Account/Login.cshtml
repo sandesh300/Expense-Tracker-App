@@ -1,0 +1,47 @@
+﻿@model LoginViewModel
+@{
+    Layout = null;
+    ViewData["Title"] = "Log In";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Expense Tracker</title>
+    <link rel="stylesheet" href="~/css/login-register.css" />
+</head>
+<body>
+    <div class="auth-container">
+        <!-- Image Panel -->
+        <div class="auth-image-panel">
+            <h1>Expense Tracker</h1>
+            <p>Take control of your finances. Clarity and peace of mind start here.</p>
+        </div>
+        <!-- Form Panel -->
+        <div class="auth-form-panel">
+            <h2>Welcome Back!</h2>
+            <p class="subtitle">Log in to continue to your dashboard.</p>
+
+            <form asp-action="Login" method="post">
+                <!-- This will display any login errors -->
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="form-group">
+                    <label asp-for="Email"></label>
+                    <input asp-for="Email" class="form-control" placeholder="you@example.com" />
+                </div>
+                <div class="form-group">
+                    <label asp-for="Password"></label>
+                    <input asp-for="Password" class="form-control" placeholder="••••••••" />
+                </div>
+                <button type="submit" class="btn-submit">Log In</button>
+            </form>
+
+            <div class="auth-link">
+                Don't have an account? <a asp-controller="Account" asp-action="Register">Sign Up</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -15,16 +15,17 @@
 
 </head>
 <body class="e-bigger">
+    @Html.AntiForgeryToken()
 
      <partial name="_SideBar" /> 
     <div class="dock-target">
 
         <nav class="navbar sticky-top">
             <div class="container-fluid py-2 px-4">
-                <i class="fa-solid fa-magnifying-glass"></i>
+                @* <i class="fa-solid fa-magnifying-glass"></i> *@
                 <div>
-                    <i class="fa-solid fa-bell"></i>
-                    <i class="fa-solid fa-message"></i>
+                    @* <i class="fa-solid fa-bell"></i>
+                    <i class="fa-solid fa-message"></i> *@
                     <img class="profile-pic" src="~/profile.jpg" />
                 </div>
             </div>
@@ -54,8 +55,21 @@
                                                     }
                                                 </div>
                                             </div>
-                                            <ejs-breadcrumb id="breadcrumb"
-                                                            separatorTemplate="@Html.Raw("<span class='fa-solid fa-angle-right'></span>")"></ejs-breadcrumb>
+                                            <ejs-breadcrumb id="breadcrumb">
+                                                <e-breadcrumb-items>
+                                                    <e-breadcrumb-item text="Dashboard" url="/Dashboard/Index"></e-breadcrumb-item>
+                                                    @* Example: If you are on Categories page *@
+                                                    @if (ViewData["PageTitle"]?.ToString() == "Categories")
+                                                    {
+                                                        <e-breadcrumb-item text="Categories" url="/Category/Index"></e-breadcrumb-item>
+                                                    }
+                                                    @if (ViewData["PageTitle"]?.ToString() == "Transactions")
+                                                    {
+                                                        <e-breadcrumb-item text="Transactions" url="/Transaction/Index"></e-breadcrumb-item>
+                                                    }
+                                                </e-breadcrumb-items>
+                                            </ejs-breadcrumb>
+
                                         </div>
                                     </div>
                                 </div>

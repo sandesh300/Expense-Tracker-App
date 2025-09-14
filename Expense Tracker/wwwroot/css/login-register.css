@@ -1,0 +1,151 @@
+﻿/* Import a modern font from Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+
+/* Basic Reset and Body Styling */
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: #f0f2f5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+}
+
+/* Main container for the form and image */
+.auth-container {
+    display: flex;
+    width: 900px;
+    height: 600px;
+    background-color: #ffffff;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    overflow: hidden; /* This is key for the border-radius to apply to child elements */
+}
+
+/* Left panel with the background image and branding */
+.auth-image-panel {
+    flex: 1;
+    background: url('https://images.unsplash.com/photo-1554224155-6726b3ff858f?q=80&w=1911&auto=format&fit=crop') no-repeat center center;
+    background-size: cover;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 40px;
+    color: white;
+}
+
+    .auth-image-panel h1 {
+        font-size: 2.5rem;
+        font-weight: 600;
+        text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        margin-bottom: 10px;
+    }
+
+    .auth-image-panel p {
+        font-size: 1.1rem;
+        text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    }
+
+
+/* Right panel with the form */
+.auth-form-panel {
+    flex: 1;
+    padding: 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+    .auth-form-panel h2 {
+        color: #333;
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+
+    .auth-form-panel .subtitle {
+        color: #777;
+        margin-bottom: 30px;
+    }
+
+/* Form element styling */
+.form-group {
+    margin-bottom: 20px;
+    position: relative;
+}
+
+    .form-group label {
+        display: block;
+        font-weight: 500;
+        color: #555;
+        margin-bottom: 8px;
+    }
+
+    .form-group input {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: border-color 0.3s;
+    }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+/* Button styling */
+.btn-submit {
+    width: 100%;
+    padding: 15px;
+    border: none;
+    border-radius: 8px;
+    background-color: #007bff;
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+    .btn-submit:hover {
+        background-color: #0056b3;
+    }
+
+/* Link at the bottom of the form */
+.auth-link {
+    text-align: center;
+    margin-top: 25px;
+    color: #555;
+}
+
+    .auth-link a {
+        color: #007bff;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+        .auth-link a:hover {
+            text-decoration: underline;
+        }
+
+/* Responsive Design for mobile */
+@media (max-width: 900px) {
+    .auth-container {
+        width: 100%;
+        height: 100%;
+        flex-direction: column;
+        border-radius: 0;
+    }
+
+    .auth-image-panel {
+        display: none; /* Hide the image panel on smaller screens */
+    }
+
+    .auth-form-panel {
+        width: 100%;
+        padding: 40px 30px;
+    }
+}

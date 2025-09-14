@@ -1,56 +1,30 @@
-﻿﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+﻿@*
+    Sidebar for Expense Tracker
 *@
+
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> UserManager
+
 @{
-    List<Object> menuItems = new List<Object>();
+    var username = ViewContext.HttpContext.Request.Query["username"].ToString();
+    // Get the current user's first name
+    var currentUser = await UserManager.GetUserAsync(User);
+    var userFirstName = currentUser?.FirstName ?? "Guest";
 
-    menuItems.Add(new
+    // Define menu items
+    var menuItems = new List<object>
     {
-        text = "General",
-        separator = true,
-    });
-    menuItems.Add(new
-    {
-        text = "Dashboard",
-        url = "/",
-        iconCss = "fa-solid fa-box",
-    });
-    menuItems.Add(new
-    {
-        text = "Categories",
-        url = "/Category",
-        iconCss = "fa-solid fa-folder-closed",
-    });
-    menuItems.Add(new
-    {
-        text = "Transactions",
-        iconCss = "fa-solid fa-arrow-right-arrow-left",
-        url = "/Transaction"
-    });
-
-    menuItems.Add(new
-    {
-        text = "Extras",
-        separator = true,
-    });
-    menuItems.Add(new
-    {
-        text = "Reports",
-        iconCss = "fa-solid fa-chart-simple",
-        url = "#"
-    }); menuItems.Add(new
-    {
-        text = "Settings",
-        iconCss = "fa-solid fa-gear",
-        url = "#"
-    });
+        new { text = "General", separator = true },
+        new { text = "Dashboard", url = $"/Dashboard/Index?username={username}", iconCss = "fa-solid fa-box" },
+        new { text = "Categories", url = $"/Category/Index?username={username}", iconCss = "fa-solid fa-folder-closed" },
+        new { text = "Transactions", url = $"/Transaction/Index?username={username}", iconCss = "fa-solid fa-arrow-right-arrow-left" },
+        new { text = "Extras", separator = true },
+        new { text = "Reports", iconCss = "fa-solid fa-chart-simple", url = "javascript:confirmAndSendReportEmail();" },
+    };
 }
 
-
-<ejs-sidebar id="sidebar" width="290px" enableDock dockSize="100px"
-             target=".dock-target" enableGestures="false">
+<ejs-sidebar id="sidebar" width="290px" enableDock dockSize="100px" target=".dock-target" enableGestures="false">
     <e-content-template>
-
         <div class="logo-wrapper">
             <div class="app-logo">
                 <img src="~/logo.png" />
@@ -60,10 +34,17 @@
         </div>
 
         <div class="profile-wrapper">
-            <img class="profile-pic" src="~/profile.jpg" />
+            <img class="profile-pic" src="~/DefaultPhoto.jpeg" />
             <div class="titles d-flex flex-column ps-3">
                 <h6 class="mb-0">Wallet App</h6>
-                <span class="text-muted">Ashton Cox</span>
+                @if (User.Identity != null && User.Identity.IsAuthenticated)
+                {
+                    <span class="text-muted" id="UserNameSideBar">@userFirstName</span>
+                }
+                else
+                {
+                    <span class="text-muted">Guest</span>
+                }
             </div>
         </div>
 
@@ -71,15 +52,65 @@
                   items="menuItems"
                   orientation="Vertical"
                   hamburgerMode></ejs-menu>
+
+        <!-- ADD THIS LOGOUT FORM -->
+        <div class="mt-auto p-3" style="margin-top:28vh !important;">
+            <form asp-controller="Account" asp-action="Logout" method="post">
+                <button type="submit" class="btn btn-danger w-100">
+                    <i class="fa-solid fa-right-from-bracket"></i> Logout
+                </button>
+            </form>
+        </div>
+
     </e-content-template>
 </ejs-sidebar>
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        dockBar = document.getElementById('sidebar').ej2_instances[0];
+        // Sidebar toggle
+        var dockBar = document.getElementById('sidebar').ej2_instances[0];
         document.getElementById('sidebar-toggler').onclick = function () {
             dockBar.toggle();
         };
     });
 
+    function testing(){
+        alert("Called test function");
+    }
+
+    function confirmAndSendReportEmail() {
+        // Get the current user's first name from the sidebar text for the confirmation message
+        const userFirstName = document.getElementById('UserNameSideBar').textContent;
+
+        // Show a confirmation dialog
+        if (confirm(`Are you sure you want to send the report to ${userFirstName}?`)) {
+            // User clicked "OK"
+            sendReportRequest();
+        }
+    }
+
+    function sendReportRequest() {
+        // Get the anti-forgery token from the hidden input we added to the layout
+        const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+        // Show some feedback to the user
+        alert("Sending report... This may take a moment.");
+
+        // Use the Fetch API to make a secure POST request to our controller action
+        fetch('/Dashboard/SendReportEmail', {
+            method: 'POST',
+            headers: {
+                'RequestVerificationToken': token // Send the token in the headers
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Show the result from the server in an alert
+            alert(data.message);
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An unexpected error occurred. Please try again.');
+        });
+    }
 </script>

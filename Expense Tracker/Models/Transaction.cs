@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Expense_Tracker.Models;  // <-- make sure this is here
 
 namespace Expense_Tracker.Models
 {
@@ -7,6 +8,11 @@ namespace Expense_Tracker.Models
     {
         [Key]
         public int TransactionId { get; set; }
+
+        // --- UPDATED USER ID PROPERTIES ---
+        public string? UserId { get; set; }
+        public ApplicationUser? User { get; set; }
+        // ----------------------------------
 
         [Range(1, int.MaxValue, ErrorMessage = "Please select a category.")]
         public int CategoryId { get; set; }
@@ -37,6 +43,5 @@ namespace Expense_Tracker.Models
                 return ((Category == null || Category.Type == "Expense") ? "- " : "+ ") + Amount.ToString("C0");
             }
         }
-
     }
 }

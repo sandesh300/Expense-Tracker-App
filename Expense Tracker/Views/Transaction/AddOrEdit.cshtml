@@ -2,21 +2,25 @@
 
 @{
     ViewData["PageTitle"] = Model.TransactionId == 0 ? "Create a new transaction" : "Edit transaction";
+    var username = Context.Request.Query["username"].ToString() ?? "Guest";
 }
 
 <div class="row">
     <div class="col-md-7">
         <div class="widget p-5" style="background-color:#212b36">
-            <form asp-action="AddOrEdit">
-                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <form asp-action="AddOrEdit" method="post">
                 <input type="hidden" name="TransactionId" value="@Model.TransactionId" />
+                <input type="hidden" name="username" value="@username" />  <!-- preserve username -->
+
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
                 <div class="mb-3">
                     <ejs-datepicker id="date" ejs-for="Date"
                                     placeholder="Date" floatLabelType="Always"
                                     format="MMM-dd-yy"></ejs-datepicker>
                 </div>
                 <div class="mb-3">
-                    <ejs-dropdownlist id="ddlCategory" ejs-for="CategoryId"
+                    <ejs-dropdownlist id="CategoryId" ejs-for="CategoryId"
                                       dataSource="@ViewBag.Categories" placeholder="Category"
                                       floatLabelType="Always" allowFiltering="true" ignoreAccent="true"
                                       filterType="Contains" popupHeight="220px">
@@ -24,6 +28,7 @@
                     </ejs-dropdownlist>
                     <span asp-validation-for="CategoryId" class="text-danger fs-6"></span>
                 </div>
+
                 <div class="mb-3">
                     <ejs-numerictextbox id="amount" ejs-for="Amount"
                                         placeholder="Amount" floatLabelType="Always"
@@ -31,22 +36,176 @@
                     <span asp-validation-for="Amount" class="text-danger fs-6"></span>
                 </div>
                 <div class="mb-3">
-                    <ejs-textbox id="note" placeholder="Note" ejs-for="Note"
-                                 floatLabelType="Always" multiline="true"></ejs-textbox>
+                    <ejs-textbox id="NoteInput" placeholder="Note" ejs-for="Note"
+                                 floatLabelType="Always" multiline="true"
+                                 input="onNoteChange" required></ejs-textbox> @* <-- Added id="NoteInput" and input="onNoteChange" *@
                 </div>
                 <ejs-button id="submit" type="submit" content="Submit" cssClass="e-success"></ejs-button>
             </form>
         </div>
     </div>
-    <div class="col-md-5">
-        <div class="widget h-100 d-flex justify-content-center align-items-center">
-            <i class="fa-solid fa-money-bill-transfer fa-2xl"></i>
-        </div>
-    </div>
 </div>
 
-@*@section Scripts {
-    @{
-    await Html.RenderPartialAsync("_ValidationScriptsPartial");
+@* This should be at the very end of your AddOrEdit.cshtml file *@
+@section Scripts {
+    <script>
+        const keywordMap = {
+            // 🍔 Food & Dining
+            'food': 'Food',
+            'pizza': 'Food',
+            'burger': 'Food',
+            'sandwich': 'Food',
+            'groceries': 'Food',
+            'supermarket': 'Food',
+            'snacks': 'Food',
+            'restaurant': 'Food',
+            'lunch': 'Food',
+            'dinner': 'Food',
+            'breakfast': 'Food',
+            'coffee': 'Food',
+            'tea': 'Food',
+
+            // 🚍 Travel & Transport
+            'bus': 'Travel',
+            'train': 'Travel',
+            'flight': 'Travel',
+            'plane': 'Travel',
+            'uber': 'Travel',
+            'ola': 'Travel',
+            'taxi': 'Travel',
+            'cab': 'Travel',
+            'petrol': 'Travel',
+            'diesel': 'Travel',
+            'gas': 'Travel',
+            'fuel': 'Travel',
+            'ticket': 'Travel',
+
+            // 🏠 Housing & Utilities
+            'rent': 'Housing',
+            'house': 'Housing',
+            'flat': 'Housing',
+            'apartment': 'Housing',
+            'maintenance': 'Housing',
+            'electricity': 'Housing',
+            'power': 'Housing',
+            'water': 'Housing',
+            'gas bill': 'Housing',
+            'wifi': 'Housing',
+            'internet': 'Housing',
+            'mobile bill': 'Housing',
+            'phone bill': 'Housing',
+
+            // 🛍 Shopping
+            'shopping': 'Shopping',
+            'mall': 'Shopping',
+            'clothes': 'Shopping',
+            'dress': 'Shopping',
+            'shoes': 'Shopping',
+            'amazon': 'Shopping',
+            'flipkart': 'Shopping',
+            'myntra': 'Shopping',
+            'zara': 'Shopping',
+
+            // 💊 Health & Medical
+            'hospital': 'Health',
+            'doctor': 'Health',
+            'medicine': 'Health',
+            'pharmacy': 'Health',
+            'chemist': 'Health',
+            'checkup': 'Health',
+            'test': 'Health',
+            'surgery': 'Health',
+            'health': 'Health',
+            'insurance': 'Health',
+
+            // 🎬 Entertainment
+            'movie': 'Entertainment',
+            'netflix': 'Entertainment',
+            'prime': 'Entertainment',
+            'hotstar': 'Entertainment',
+            'spotify': 'Entertainment',
+            'music': 'Entertainment',
+            'game': 'Entertainment',
+            'cinema': 'Entertainment',
+            'theatre': 'Entertainment',
+
+            // 💼 Income
+            'salary': 'Income',
+            'bonus': 'Income',
+            'pay': 'Income',
+            'payment': 'Income',
+            'deposit': 'Income',
+            'income': 'Income',
+            'cashback': 'Income',
+            'refund': 'Income',
+            'freelance': 'Income',
+            'project': 'Income',
+
+            // 🎓 Education
+            'school': 'Education',
+            'college': 'Education',
+            'university': 'Education',
+            'course': 'Education',
+            'class': 'Education',
+            'exam': 'Education',
+            'books': 'Education',
+            'stationery': 'Education',
+            'fees': 'Education',
+            'coaching': 'Education',
+
+            // 🎁 Miscellaneous
+            'gift': 'Other',
+            'donation': 'Other',
+            'charity': 'Other',
+            'wedding': 'Other',
+            'party': 'Other',
+            'festival': 'Other',
+            'puja': 'Other'
+        };
+
+
+        function onNoteChange(args) {
+            const noteText = args.value ? args.value.toLowerCase() : '';
+            let suggestedCategory = null;
+
+            // 1. Find the *last* matching keyword in the note
+            for (const keyword in keywordMap) {
+                if (noteText.includes(keyword)) {
+                    suggestedCategory = keywordMap[keyword];
+                }
+            }
+
+            const categoryDropdown = document.getElementById('CategoryId').ej2_instances[0];
+
+            if (suggestedCategory) {
+                // 2. Look for matching category in dropdown
+                const categories = categoryDropdown.dataSource;
+                const matchedCategory = categories.find(cat =>
+                    cat.TitleWithIcon.toLowerCase().includes(suggestedCategory.toLowerCase())
+                );
+
+                if (matchedCategory) {
+                    categoryDropdown.value = matchedCategory.CategoryId;
+                    categoryDropdown.dataBind();
+
+                    // 🔥 3. Highlight dropdown (flash effect)
+                    const el = document.getElementById('CategoryId');
+                    el.classList.add('flash-highlight');
+                    setTimeout(() => el.classList.remove('flash-highlight'), 800);
+                }
+            } else {
+                // 4. Reset to default (no selection)
+                categoryDropdown.value = null;
+                categoryDropdown.dataBind();
+            }
+        }
+    </script>
+
+    <style>
+        /* Simple flash effect when auto-select happens */
+        .flash-highlight {
+            border: 2px solid #28a745 !important;
+            box-shadow: 0 0 8px #28a745;
+        }
+    </style>
 }
-}*@
